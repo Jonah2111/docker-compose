@@ -1,0 +1,62 @@
+name: quest-compose
+
+services:
+  mysql:
+    image: mysql:8.0.44-debian
+    container_name: quest-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./quest-init.sql:/docker-entrypoint-initdb.d/setup.sql
+
+    networks:
+      - quest
+
+
+  boot:
+    # build:
+      # context: /workspace/SOPRA-250905-GIT/quest-boot
+      # context: ./quest-boot
+
+    image: ajc/quest:boot
+    container_name: quest-boot
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://quest-mysql/projet_quest
+      SPRING_DATASOURCE_PASSWORD: root
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    networks:
+      - quest
+
+
+  angular:
+    image: ajc/quest:angular
+    container_name: quest-angular
+
+    ports:
+      - 80:80
+
+    depends_on:
+      - boot
+
+    networks:
+      - quest
+
+volumes:
+  db_data:
+    name: quest-db-data
+
+networks:
+  quest:
+    name: quest
