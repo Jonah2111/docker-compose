@@ -2,7 +2,7 @@ name: quest-compose
 
 services:
   mysql:
-    image: mysql:8.0.44-debian
+    image: mysql:8.0.44
     container_name: quest-mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
